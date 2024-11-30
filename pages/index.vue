@@ -1,11 +1,11 @@
 <template>
     <div class="container mx-auto px-4">
-        <breedsList />
+        <BreedsList />
     </div>
 
 
 </template>
 
 <script>
-import breedsList from '~/components/breedsList.vue'
+import BreedsList from '~/components/BreedList.vue'
 </script>

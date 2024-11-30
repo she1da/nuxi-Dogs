@@ -6,9 +6,5 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-console.log('Test breed page loaded')
-onMounted(() => {
-    console.log('Breed page component mounted:', $route.params.breed)
-})
+
 </script>
