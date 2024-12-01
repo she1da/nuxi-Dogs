@@ -5,5 +5,6 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
   experimental: {
     payloadExtraction: false
-  }
+  },
+  // ssr: false
 })

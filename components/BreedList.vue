@@ -1,5 +1,7 @@
 <template>
-    <div>
+    <UProgress v-if="loading" animation="carousel" />
+
+    <div v-else>
         <div class="flex flex-wrap">
             <NuxtLink v-for="breed in paginatedBreeds" :key="breed" :to="`/breeds/${breed}`"
                 class="w-full md:w-1/3 xl:w-1/4 p-6 flex flex-col">
@@ -9,87 +11,65 @@
                 </div>
             </NuxtLink>
         </div>
-        <div class="flex justify-center mt-4">
-            <button v-if="currentPage > 1" @click="goToPage(currentPage - 1)"
-                class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
-                Previous
-            </button>
-            <button v-if="hasNextPage" @click="goToPage(currentPage + 1)"
-                class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 ml-2">
-                Next
-            </button>
+        <div class="flex mt-4">
+
+
+            <UButton label="Previous" color="gray" v-if="currentPage > 1" @click="goToPage(currentPage - 1)">
+                <template #trailing>
+                    <UIcon name="i-heroicons-arrow-left-20-solid" class="w-5 h-5" />
+                </template>
+            </UButton>
+            <UButton label="Next" color="gray" v-if="hasNextPage" @click="goToPage(currentPage + 1)">
+                <template #trailing>
+                    <UIcon name="i-heroicons-arrow-right-20-solid" class="w-5 h-5" />
+                </template>
+            </UButton>
+
+
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            breeds: {},
-            breedImages: {},
-            currentPage: 1,
-            breedsPerPage: 6,
-            paginatedBreeds: [],
-            hasNextPage: false,
-        };
-    },
-    methods: {
-        async fetchBreeds() {
-            try {
-                const response = await fetch("https://dog.ceo/api/breeds/list/all");
-                const { message } = await response.json();
-                this.breeds = message;
+<script setup>
+import { useFetch } from '../composable/useFetch'
 
-                this.updatePageBreeds();
-            } catch (error) {
-                console.error("Failed to fetch breeds:", error);
-            }
-        },
-        updatePageBreeds() {
-            const breedKeys = Object.keys(this.breeds);
-            const startIndex = (this.currentPage - 1) * this.breedsPerPage;
-            const endIndex = this.currentPage * this.breedsPerPage;
+const breeds = ref({})
+const breedImages = ref({})
+const currentPage = ref(1)
+const breedsPerPage = 6
+const paginatedBreeds = ref([])
+const hasNextPage = ref(false)
+const loading = ref(true)
 
-            this.paginatedBreeds = breedKeys.slice(startIndex, endIndex);
-
-            this.hasNextPage = endIndex < breedKeys.length;
-
-            this.paginatedBreeds.forEach(breed => {
-                this.fetchBreedImages(breed);
-            });
-
-        },
-        async fetchBreedImages(breed) {
-            try {
-                const response = await fetch(`https://dog.ceo/api/breed/${breed}/images`);
-                const { message } = await response.json();
-                this.breedImages[breed] = message[0];
-            } catch (error) {
-                console.error(`Failed to fetch images for breed ${breed}:`, error);
-            }
-        },
-        getBreedImage(breed) {
-            return this.breedImages[breed] || "https://via.placeholder.com/400"; // Return placeholder if no image
-        },
-        goToPage(page) {
-            this.currentPage = page;
-            this.updatePageBreeds();
-        },
-    },
-    created() {
-        this.fetchBreeds();
-    },
-};
+const { data: breedsData } = useFetch('https://dog.ceo/api/breeds/list/all')
+if (breedsData.value) {
+    const { message } = breedsData.value
+    breeds.value = message
+    loading.value = false
+}
+const updatePageBreeds = () => {
+    const breedKeys = Object.keys(breeds.value)
+    const startIndex = (currentPage.value - 1) * breedsPerPage
+    const endIndex = currentPage.value * breedsPerPage
+    paginatedBreeds.value = breedKeys.slice(startIndex, endIndex)
+    hasNextPage.value = endIndex < breedKeys.length
+    paginatedBreeds.value.forEach(breed => {
+        fetchBreedImages(breed)
+    })
+}
+const fetchBreedImages = async (breed) => {
+    const { data } = useFetch(`https://dog.ceo/api/breed/${breed}/images`)
+    const { message } = data.value
+    breedImages.value[breed] = message[0]
+}
+const getBreedImage = (breed) => {
+    return breedImages.value[breed] || "https://via.placeholder.com/400"
+}
+const goToPage = (page) => {
+    currentPage.value = page
+    updatePageBreeds()
+}
+onMounted(() => {
+    updatePageBreeds()
+})
 </script>
-
-<style scoped>
-.hover\:grow {
-    transform: scale(1.05);
-    transition: transform 0.2s;
-}
-
-button {
-    transition: background-color 0.2s;
-}
-</style>
