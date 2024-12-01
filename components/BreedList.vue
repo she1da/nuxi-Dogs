@@ -1,6 +1,6 @@
 <template>
     <UProgress v-if="loading" animation="carousel" />
-
+    <div v-if="error" class="text-red-500">Error fetching data</div>
     <div v-else>
         <div class="flex flex-wrap">
             <NuxtLink v-for="breed in paginatedBreeds" :key="breed" :to="`/breeds/${breed}`"
@@ -40,11 +40,15 @@ const breedsPerPage = 6
 const paginatedBreeds = ref([])
 const hasNextPage = ref(false)
 const loading = ref(true)
-
-const { data: breedsData } = useFetch('https://dog.ceo/api/breeds/list/all')
+const error = ref(null)
+const { data: breedsData, error: errorMessages } = useFetch('https://dog.ceo/api/breeds/list/all')
 if (breedsData.value) {
     const { message } = breedsData.value
     breeds.value = message
+    loading.value = false
+}
+if (errorMessages.value) {
+    error.value = true
     loading.value = false
 }
 const updatePageBreeds = () => {
@@ -58,8 +62,12 @@ const updatePageBreeds = () => {
     })
 }
 const fetchBreedImages = async (breed) => {
-    const { data } = useFetch(`https://dog.ceo/api/breed/${breed}/images`)
+    const { data, error: errorMessages } = useFetch(`https://dog.ceo/api/breed/${breed}/images`)
     const { message } = data.value
+    if (errorMessages.value) {
+        error.value = true
+        loading.value = false
+    }
     breedImages.value[breed] = message[0]
 }
 const getBreedImage = (breed) => {
