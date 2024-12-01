@@ -12,7 +12,6 @@
                     Dogs breeds
                 </NuxtLink>
             </div>
-
             <div class="order-2 md:order-3 flex items-center" id="nav-content">
                 <nav class="flex items-center space-x-4">
                     <NuxtLink to="/" class="text-gray-800 hover:text-gray-600">Home</NuxtLink>
